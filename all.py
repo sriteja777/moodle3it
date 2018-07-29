@@ -12,6 +12,7 @@ import tkinter
 from getch import _GetchUnix
 import threading
 import signal
+import sys
 
 dashboard_url = 'https://moodle.iiit.ac.in/my/'
 chunk_size = 100000
@@ -32,6 +33,11 @@ files = ObjectSetup()
 names = ObjectSetup()
 courses = ObjectSetup()
 
+ASK_DOWNLOAD = False
+if len(sys.argv) > 1:
+    if sys.argv[1] == '-a':
+        ASK_DOWNLOAD = True
+        print("ASK_DOWNLOAD setted")
 
 # def is_downloadable(url):
 #     """
@@ -74,7 +80,7 @@ def get_filename_from_cd(cd):
     name = re.findall('filename=(.+)', cd)
     if len(name) == 0:
         return None
-    return name[0].replace('"', '')
+    return re.sub(r'[^\x00-\x7f]',r'', name[0].replace('"', ''))
 
 
 def create_tables(courses_list):
@@ -302,6 +308,24 @@ def cancel_download(filename):
         os.remove(filename)
     return
 
+def to_download(filename):
+    if ASK_DOWNLOAD:
+        print('\r' + 'Are you sure want to download', filename, '?(y/n):', end='')
+        go_to_next = False
+        while True:
+            reply = input()
+            if reply == 'y':
+                break
+            elif reply == 'n':
+                go_to_next = True
+                break
+            else:
+                print('Please reply (y/n):', end='')
+        if go_to_next:
+            return False
+        else:
+            return True
+
 
 def download_from_course(course):
     """
@@ -315,7 +339,7 @@ def download_from_course(course):
     cur_wor_dir = os.getcwd()
     os.chdir(os.getcwd() + '/' + course)
     c, conn = connection()
-    print("Now downloading files from the course", course, '...')
+    print('\r' + "Now downloading files from the course", course, '...')
     for link, name in zip(getattr(files, course), getattr(names, course)):
         x = c.execute("select filename from {0} where link='{1}'".format(course, link))
         if not int(x) > 0:
@@ -325,6 +349,8 @@ def download_from_course(course):
             filename = get_filename_from_cd(file_headers.get('content-disposition'))
             if is_downloadable(file_headers.get('content-type')):
                 try:
+                    if ASK_DOWNLOAD and not to_download(filename):
+                        continue
                     file_size = int(file_headers['content-length'])
                     print('\r', filename, '(', naturalsize(file_size), ')',
                           ' downloading... ', flush=True, sep='', end='')
@@ -418,9 +444,11 @@ def inp():
     return
 
 
+
 with requests.Session() as session:
     setattr(page, 'login', login())
     connect_to_moodle()
+
     setattr(soup, 'dashboard', bs4.BeautifulSoup(page.dashboard.text, 'lxml'))
     setattr(courses, 'html', soup.dashboard.select('.course_title'))
     setattr(courses, 'list', [])
@@ -433,9 +461,13 @@ with requests.Session() as session:
     setattr(page, 'temp', '')
     setattr(soup, 'temp', '')
     get_links(selected_courses, selected_courses_links)
-    inp_thread = threading.Thread(target=inp)
-    inp_thread.daemon = True
-    inp_thread.start()
+    # file_headers = session.head('https://moodle.iiit.ac.in/mod/resource/view.php?id=11635', allow_redirects=True).headers
+    # print(get_filename_from_cd(file_headers.get('content-disposition')))
+    # raise SystemExit
+    if not ASK_DOWNLOAD:
+        inp_thread = threading.Thread(target=inp)
+        inp_thread.daemon = True
+        inp_thread.start()
     resume.set()
     for selected_course in selected_courses:
         download_from_course(selected_course)

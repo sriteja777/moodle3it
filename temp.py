@@ -16,34 +16,35 @@ def print_percentage():
     print('dsfsf')
 
 
-from readchar import readchar
-from getch import getch
-import os, signal
-r = threading.Event()
-def inp():
-    while True:
-        r.wait()
-        c = readchar()
+# from readchar import readchar
+# from getch import getch
+# import os, signal
+# r = threading.Event()
+# def inp():
+#     while True:
+#         r.wait()
+#         c = readchar()
+#
+#         if c == ' ':
+#             print("yes")
+#             if ready.is_set():
+#                 ready.clear()
+#             else:
+#                 ready.set()
+#         if c == 'q':
+#             break
+#         if c == '\x1a':
+#             os.kill(os.getpid(), signal.SIGTSTP)
 
-        if c == ' ':
-            print("yes")
-            if ready.is_set():
-                ready.clear()
-            else:
-                ready.set()
-        if c == 'q':
-            break
-        if c == '\x1a':
-            os.kill(os.getpid(), signal.SIGTSTP)
-
-
-k = threading.Thread(target=inp)
-k.start()
-
-ready.set()
-for i in range(15):
-    ready.wait()
-    sleep(1)
-    r.clear()
-    print(i, sep='')
-    r.set()
+#
+# k = threading.Thread(target=inp)
+# k.start()
+#
+# ready.set()
+# for i in range(15):
+#     ready.wait()
+#     sleep(1)
+#     r.clear()
+#     print(i, sep='')
+#     r.set()
+print('–')
