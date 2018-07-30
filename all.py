@@ -35,10 +35,29 @@ names = ObjectSetup()
 courses = ObjectSetup()
 
 ASK_DOWNLOAD = False
-if len(sys.argv) > 1:
-    if sys.argv[1] == '-a':
-        ASK_DOWNLOAD = True
-        print("ASK_DOWNLOAD setted")
+while True:
+    if len(sys.argv) > 1:
+        if sys.argv[1] == '-a':
+            ASK_DOWNLOAD = True
+            print("ASK_DOWNLOAD setted")
+        elif sys.argv[1] == '-p':
+            del sys.argv[1]
+            if 1 < len(sys.argv):
+                if os.path.isdir(sys.argv[1]):
+                    path_to_download = sys.argv[1]
+                else:
+                    print("Please enter a valid path after option -p")
+                    raise SystemExit(10)
+            else:
+                print("Please provide a path to the argument -p")
+                raise SystemExit(8)
+        else:
+            print(str(sys.argv[1]) + ': Invalid Option')
+            raise SystemExit(9)
+        del sys.argv[1]
+    else:
+        break
+
 
 # def is_downloadable(url):
 #     """
@@ -341,7 +360,8 @@ def download_from_course(course):
     """
     # course = 'Mathematics_II'
     # cur_wor_dir = os.getcwd()
-    os.chdir(path_to_download + course)
+    os.chdir(path_to_download)
+    os.chdir(course)
     c, conn = connection()
     print('\r' + "Now downloading files from the course", course, '...')
     for link, name in zip(getattr(files, course), getattr(names, course)):
@@ -446,8 +466,6 @@ def inp():
            os.kill(os.getpid(), signal.SIGTSTP)
     return
 
-def download_from_course_without_database():
-    return
 
 
 def get_custom_file(course, link, filename=None):
