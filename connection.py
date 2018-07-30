@@ -5,7 +5,7 @@ def connection():
     conn = pymysql.connect(host="localhost",
                            user="root",
                            passwd="Sriteja@27",
-                           db="dfr_1_2",
+                           db="dfr_2_1",
                            use_unicode=True,
                            charset="utf8")
     c = conn.cursor()

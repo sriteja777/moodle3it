@@ -21,7 +21,7 @@ resume = threading.Event()
 cancel = threading.Event()
 kb_interrupt = threading.Event()
 downloading = threading.Event()
-path_to_download = '/home/sriteja/PycharmProjects/Moodle_Project/'
+path_to_download = '/home/sriteja/iiit/academics/sem3/'
 
 
 class ObjectSetup(object):
@@ -112,6 +112,7 @@ def make_directories(courses_list):
     :param courses_list:
     :return: int -- the return code
     """
+    os.chdir(path_to_download)
     for course in courses_list:
         if not os.path.isdir(course):
             os.mkdir(course)
