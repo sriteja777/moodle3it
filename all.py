@@ -172,11 +172,34 @@ def connect_to_moodle():
     """
     global page
     try:
-        setattr(page, 'dashboard', session.get('https://moodle.iiit.ac.in/my/'))
+        pg = session.get('https://moodle.iiit.ac.in/my/')
         print('Accessed to Moodle')
     except requests.ConnectionError:
         print("Looks like you are not connected to iiit vpn, run iiit -c command to connect to iiit vpn")
         raise SystemExit(4)
+    return pg
+
+
+def get_courses():
+    """
+    Get the course from the Moodle dashboard page.
+
+    :return: int -- the return status
+    :raise: SystemExit
+    """
+    global courses
+    for i in courses.html:
+        courses.list.append(i.text.replace(' ', '_').replace('-', ''))
+        courses.links.append(i.find('a').get('href'))
+
+    if not courses.list or not courses.html:
+        print("Looks like there is some problem in getting moodle dashboard page, try after some time")
+        raise SystemExit(5)
+    else:
+        print("You are registered to the following courses for this sem")
+        [print(s_no, ') ', course, '(', link, ')', sep='') for course, s_no, link in zip(courses.list,
+                                                                                         range(1, len(courses.list)+1),
+                                                                                         courses.links)]
     return 0
 
 
@@ -206,7 +229,7 @@ def login():
         return advanced_login()
 
     sp = bs4.BeautifulSoup(pg.text, 'lxml')
-    setattr(soup, 'login', sp)
+
 
     if sp.find('p').text == success_text:
         print('Login Successful')
@@ -216,30 +239,7 @@ def login():
         # print(soup.login)
         print('Login Failure. Try checking credentials or change the execution value. Even if the problem persists try after some time.')
         raise SystemExit(3)
-    return pg
-
-
-def get_courses():
-    """
-    Get the course from the Moodle dashboard page.
-
-    :return: int -- the return status
-    :raise: SystemExit
-    """
-    global courses
-    for i in courses.html:
-        courses.list.append(i.text.replace(' ', '_').replace('-', ''))
-        courses.links.append(i.find('a').get('href'))
-
-    if not courses.list or not courses.html:
-        print("Looks like there is some problem in getting moodle dashboard page, try after some time")
-        raise SystemExit(5)
-    else:
-        print("You are registered to the following courses for this sem")
-        [print(s_no, ') ', course, '(', link, ')', sep='') for course, s_no, link in zip(courses.list,
-                                                                                         range(1, len(courses.list)+1),
-                                                                                         courses.links)]
-    return 0
+    return pg, sp
 
 
 def get_links(courses_list, courses_links):
@@ -467,7 +467,6 @@ def inp():
     return
 
 
-
 def get_custom_file(course, link, filename=None):
     os.chdir(path_to_download + course)
     downloaded = 0
@@ -492,10 +491,12 @@ def get_custom_file(course, link, filename=None):
     return
 
 
-with requests.Session() as session:
-    setattr(page, 'login', login())
-    connect_to_moodle()
-
+def run_engine():
+    global session
+    temp1, temp2 = login()
+    setattr(page, 'login', temp1)
+    setattr(soup, 'login', temp2)
+    setattr(page, 'dashboard', connect_to_moodle())
     setattr(soup, 'dashboard', bs4.BeautifulSoup(page.dashboard.text, 'lxml'))
     setattr(courses, 'html', soup.dashboard.select('.course_title'))
     setattr(courses, 'list', [])
@@ -516,3 +517,8 @@ with requests.Session() as session:
     resume.set()
     for selected_course in selected_courses:
         download_from_course(selected_course)
+
+
+with requests.Session() as session:
+    if __name__ == "__main__":
+        run_engine()
