@@ -21,6 +21,7 @@ resume = threading.Event()
 cancel = threading.Event()
 kb_interrupt = threading.Event()
 downloading = threading.Event()
+path_to_download = '/home/sriteja/PycharmProjects/Moodle_Project/'
 
 
 class ObjectSetup(object):
@@ -308,6 +309,7 @@ def cancel_download(filename):
         os.remove(filename)
     return
 
+
 def to_download(filename):
     if ASK_DOWNLOAD:
         print('\r' + 'Are you sure want to download', filename, '?(y/n):', end='')
@@ -325,6 +327,7 @@ def to_download(filename):
             return False
         else:
             return True
+    return True
 
 
 def download_from_course(course):
@@ -336,8 +339,8 @@ def download_from_course(course):
     :raise: SystemExit
     """
     # course = 'Mathematics_II'
-    cur_wor_dir = os.getcwd()
-    os.chdir(os.getcwd() + '/' + course)
+    # cur_wor_dir = os.getcwd()
+    os.chdir(path_to_download + course)
     c, conn = connection()
     print('\r' + "Now downloading files from the course", course, '...')
     for link, name in zip(getattr(files, course), getattr(names, course)):
@@ -406,7 +409,7 @@ def download_from_course(course):
     conn.commit()
     c.close()
     print("\rFinished downloading files from the course", course)
-    os.chdir(cur_wor_dir)
+    os.chdir(path_to_download)
     return 0
 
 
@@ -440,9 +443,34 @@ def inp():
         elif c == '\x1a':
             # send ctrl+z signal to program
            os.kill(os.getpid(), signal.SIGTSTP)
-
     return
 
+def download_from_course_without_database():
+    return
+
+
+def get_custom_file(course, link, filename=None):
+    os.chdir(path_to_download + course)
+    downloaded = 0
+    file = session.get(link, stream=True, allow_redirects=True)
+    if not filename:
+        filename = get_filename_from_cd(file.headers.get('content-disposition'))
+    file_size = int(file.headers['content-length'])
+    print('\r', filename, '(', naturalsize(file_size), ')',
+          ' downloading... ', flush=True, sep='', end='')
+    with open(filename, 'wb') as f:
+        for chunk in file.iter_content(chunk_size):
+            if chunk:
+                f.write(chunk)
+                downloaded += len(chunk)
+            downloaded_percentage = int((downloaded / file_size) * 100)
+            print('{0}% Completed'.format(downloaded_percentage),
+                  '\b'.rjust(12 + len(str(downloaded_percentage)), '\b'), end='', flush=True)
+        print(15 * ' ', 15 * '\b', sep='', end='')
+        print('finished.')
+
+    file.close()
+    return
 
 
 with requests.Session() as session:
@@ -461,9 +489,7 @@ with requests.Session() as session:
     setattr(page, 'temp', '')
     setattr(soup, 'temp', '')
     get_links(selected_courses, selected_courses_links)
-    # file_headers = session.head('https://moodle.iiit.ac.in/mod/resource/view.php?id=11635', allow_redirects=True).headers
-    # print(get_filename_from_cd(file_headers.get('content-disposition')))
-    # raise SystemExit
+
     if not ASK_DOWNLOAD:
         inp_thread = threading.Thread(target=inp)
         inp_thread.daemon = True
