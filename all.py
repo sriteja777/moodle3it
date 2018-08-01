@@ -210,7 +210,7 @@ def login():
     :return: the login request page
     :raise: SystemExit
     """
-    global session
+    global session, soup
     url, execution_value, username, password = set_login_data()
     success_text = 'You, sriteja.sugoor@students.iiit.ac.in, have successfully' \
                    ' logged into the Central Authentication Service.'
@@ -229,7 +229,7 @@ def login():
         return advanced_login()
 
     sp = bs4.BeautifulSoup(pg.text, 'lxml')
-
+    setattr(soup, 'login', sp)
 
     if sp.find('p').text == success_text:
         print('Login Successful')
@@ -239,7 +239,7 @@ def login():
         # print(soup.login)
         print('Login Failure. Try checking credentials or change the execution value. Even if the problem persists try after some time.')
         raise SystemExit(3)
-    return pg, sp
+    return pg
 
 
 def get_links(courses_list, courses_links):
@@ -270,6 +270,33 @@ def get_links(courses_list, courses_links):
         else:
             print("Accessed.")
     return 0
+
+
+def get_all_courses():
+    global session, courses
+
+    link = 'https://moodle.iiit.ac.in/blocks/custom_course_menu/interface.php'
+    pg = session.get(link)
+    sp = bs4.BeautifulSoup(pg.text, 'lxml')
+    print(sp.prettify())
+    for i in sp.select('.custom_course_menu_category'):
+        print('got')
+        print(i.text)
+    print()
+    for i in sp.select('.custom_course_menu_category')[0]:
+        if isinstance(i, bs4.element.NavigableString):
+            print(i.strip())
+    for i in sp.select('.custom_course_menu_category'):
+        for j in i:
+            if isinstance(j, bs4.element.NavigableString):
+                print(j.strip().replace(' ', '_'))
+        for li in i.select('.custom_course_menu_course'):
+            print(li.text + '(' + li.find('a').get('href') + ')')
+
+
+
+
+    return
 
 
 def get_selected_courses():
@@ -493,10 +520,11 @@ def get_custom_file(course, link, filename=None):
 
 def run_engine():
     global session
-    temp1, temp2 = login()
-    setattr(page, 'login', temp1)
-    setattr(soup, 'login', temp2)
+    setattr(page, 'login', login())
     setattr(page, 'dashboard', connect_to_moodle())
+    get_all_courses()
+    raise SystemExit
+
     setattr(soup, 'dashboard', bs4.BeautifulSoup(page.dashboard.text, 'lxml'))
     setattr(courses, 'html', soup.dashboard.select('.course_title'))
     setattr(courses, 'list', [])
