@@ -1,7 +1,7 @@
 import all
 import requests
 import  bs4
-login_page, sp = all.login()
+login_page = all.login()
 index = 'https://mess.iiit.ac.in/mess/web/index.php'
 home = 'https://mess.iiit.ac.in/mess/web/student_home.php'
 pg = requests.get(index, cookies=login_page.cookies)
