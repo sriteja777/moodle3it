@@ -400,8 +400,10 @@ def download_from_course(course):
             filename = get_filename_from_cd(file_headers.get('content-disposition'))
             if is_downloadable(file_headers.get('content-type')):
                 try:
+
                     if ASK_DOWNLOAD and not to_download(filename):
                         continue
+
                     file_size = int(file_headers['content-length'])
                     print('\r', filename, '(', naturalsize(file_size), ')',
                           ' downloading... ', flush=True, sep='', end='')
@@ -459,6 +461,63 @@ def download_from_course(course):
     print("\rFinished downloading files from the course", course)
     os.chdir(path_to_download)
     return 0
+
+
+def download_without_database(course):
+    global session
+    os.chdir(path_to_download)
+    os.chdir(course)
+
+    for link, name in zip(getattr(files, course), getattr(names, course)):
+        file_headers = session.head(link, allow_redirects=True).headers
+        filename = get_filename_from_cd(file_headers.get('content-disposition'))
+        if is_downloadable(file_headers.get('content-type')):
+            try:
+                if not os.path.isfile(filename):
+                    file_size = int(file_headers.get('content-length'))
+                    print('\r', filename, '(', naturalsize(file_size), ')',
+                          ' downloading... ', flush=True, sep='', end='')
+                    downloaded = 0
+                    downloading.set()
+                    # sec_sta = time.clock()
+                    resume.wait()
+                    if kb_interrupt.isSet():
+                        raise KeyboardInterrupt
+                    file = session.get(link, stream=True)
+                    # print(time.clock() - sec_sta)
+                    with open(filename, 'wb') as f:
+                        for chunk in file.iter_content(chunk_size):
+                            if kb_interrupt.isSet():
+                                raise KeyboardInterrupt
+                            resume.wait()
+                            if cancel.isSet():
+                                cancel_download(filename)
+                                cancel.clear()
+                                downloading.clear()
+                                break
+                            if chunk:
+                                f.write(chunk)
+                                downloaded += len(chunk)
+                            downloaded_percentage = int((downloaded / file_size) * 100)
+                            print('{0}% Completed'.format(downloaded_percentage),
+                                  '\b'.rjust(12 + len(str(downloaded_percentage)), '\b'), end='', flush=True)
+                        else:
+                            downloading.clear()
+                            print(15 * ' ', 15 * '\b', sep='', end='')
+                            print('finished.')
+
+                        file.close()
+
+            except KeyboardInterrupt:
+                # print('cancelled')
+                cancel_download(filename)
+                file.close()
+                raise SystemExit
+        else:
+            print('\r' + name + ' is not downloadable')
+
+
+
 
 
 def inp():
@@ -523,7 +582,6 @@ def run_engine():
     setattr(page, 'login', login())
     setattr(page, 'dashboard', connect_to_moodle())
     get_all_courses()
-    raise SystemExit
 
     setattr(soup, 'dashboard', bs4.BeautifulSoup(page.dashboard.text, 'lxml'))
     setattr(courses, 'html', soup.dashboard.select('.course_title'))
@@ -544,7 +602,11 @@ def run_engine():
         inp_thread.start()
     resume.set()
     for selected_course in selected_courses:
-        download_from_course(selected_course)
+        if getattr(files, selected_course) and getattr(names, selected_course):
+            # download_from_course(selected_course)
+            download_without_database(selected_course)
+        else:
+            print("\rNo files or topics in " + selected_course + ' course')
 
 
 with requests.Session() as session:
