@@ -1,18 +1,18 @@
-import requests
-import bs4
-import re
-import os
-from connection import *
-import warnings
-from subprocess import call
 import logging
-import time
-from humanize import naturalsize
-import tkinter
-from getch import _GetchUnix
-import threading
+import os
+import re
 import signal
 import sys
+import threading
+import warnings
+from subprocess import call
+
+import bs4
+import requests
+from humanize import naturalsize
+
+from connection import *
+from getch import _GetchUnix
 
 dashboard_url = 'https://moodle.iiit.ac.in/my/'
 chunk_size = 100000
@@ -100,7 +100,7 @@ def get_filename_from_cd(cd):
     name = re.findall('filename=(.+)', cd)
     if len(name) == 0:
         return None
-    return re.sub(r'[^\x00-\x7f]',r'', name[0].replace('"', ''))
+    return re.sub(r'[^\x00-\x7f]', r'', name[0].replace('"', ''))
 
 
 def create_tables(courses_list):
@@ -116,7 +116,9 @@ def create_tables(courses_list):
             warnings.simplefilter('ignore')
             c, conn = connection()
             for course in courses_list:
-                c.execute("create table if not exists {0} (filename varchar(100), link varchar(100))".format(course))
+                c.execute(
+                    "create table if not exists {0} (filename varchar(100), link varchar(100))".format(
+                        course))
             conn.commit()
     except Exception as e:
         print("Looks like there is a problem in creating tables and the problem is {}.".format(e))
@@ -175,7 +177,8 @@ def connect_to_moodle():
         pg = session.get('https://moodle.iiit.ac.in/my/')
         print('Accessed to Moodle')
     except requests.ConnectionError:
-        print("Looks like you are not connected to iiit vpn, run iiit -c command to connect to iiit vpn")
+        print(
+            "Looks like you are not connected to iiit vpn, run iiit -c command to connect to iiit vpn")
         raise SystemExit(4)
     return pg
 
@@ -193,13 +196,16 @@ def get_courses():
         courses.links.append(i.find('a').get('href'))
 
     if not courses.list or not courses.html:
-        print("Looks like there is some problem in getting moodle dashboard page, try after some time")
+        print(
+            "Looks like there is some problem in getting moodle dashboard page, try after some time"
+        )
         raise SystemExit(5)
     else:
         print("You are registered to the following courses for this sem")
-        [print(s_no, ') ', course, '(', link, ')', sep='') for course, s_no, link in zip(courses.list,
-                                                                                         range(1, len(courses.list)+1),
-                                                                                         courses.links)]
+        [print(s_no, ') ', course, '(', link, ')', sep='') for course, s_no, link in
+         zip(courses.list,
+             range(1, len(courses.list) + 1),
+             courses.links)]
     return 0
 
 
@@ -223,9 +229,10 @@ def login():
         print("I think you are not connected to internet.")
         raise SystemExit(1)
     except requests.ReadTimeout:
-        logging.warning("Looks like CAS is down as it does not support single Sign-Out, try logging out of all other "
-                        "applications or increase the timeout. But as of now I am trying some advanced method. If you "
-                        "see this message again and again then stop this program and try after some time.")
+        logging.warning(
+            "Looks like CAS is down as it does not support single Sign-Out, try logging out of all other "
+            "applications or increase the timeout. But as of now I am trying some advanced method. If you "
+            "see this message again and again then stop this program and try after some time.")
         return advanced_login()
 
     sp = bs4.BeautifulSoup(pg.text, 'lxml')
@@ -237,7 +244,8 @@ def login():
         # print(username, password)
         # print(pg.text)
         # print(soup.login)
-        print('Login Failure. Try checking credentials or change the execution value. Even if the problem persists try after some time.')
+        print(
+            'Login Failure. Try checking credentials or change the execution value. Even if the problem persists try after some time.')
         raise SystemExit(3)
     return pg
 
@@ -293,9 +301,6 @@ def get_all_courses():
         for li in i.select('.custom_course_menu_course'):
             print(li.text + '(' + li.find('a').get('href') + ')')
 
-
-
-
     return
 
 
@@ -305,9 +310,10 @@ def get_selected_courses():
 
     :return: Selected courses by the user along with their moodle courses links.
     """
-    print('Select the course you want to update from the above registered courses list by typing the number of the '
-          'course. If you want to update multiple courses other than "All Courses" then multiple numbers seperated '
-          'by spaces.')
+    print(
+        'Select the course you want to update from the above registered courses list by typing the number of the '
+        'course. If you want to update multiple courses other than "All Courses" then multiple numbers seperated '
+        'by spaces.')
     while True:
         try:
             input_list = list(map(int, input().split()))
@@ -315,25 +321,26 @@ def get_selected_courses():
             print("Invalid Input, please read the above statement")
         else:
             if len(input_list) == 1:
-                if not 0 < input_list[0] < len(courses.list)+2:
-                    print("Sorry your input must be in between 0 and", len(courses.list)+2)
+                if not 0 < input_list[0] < len(courses.list) + 2:
+                    print("Sorry your input must be in between 0 and", len(courses.list) + 2)
                 else:
                     if input_list[0] == 8:
                         sel_courses = courses.list
                         sel_courses_link = courses.links
                     else:
-                        sel_courses = [courses.list[input_list[0]-1]]
-                        sel_courses_link = [courses.links[input_list[0]-1]]
+                        sel_courses = [courses.list[input_list[0] - 1]]
+                        sel_courses_link = [courses.links[input_list[0] - 1]]
                     break
 
             else:
                 for num in input_list:
-                    if not 0 < num < len(courses.list)+1:
-                        print("For multiple courses your inputs must be between 0 and", len(courses.list)+1)
+                    if not 0 < num < len(courses.list) + 1:
+                        print("For multiple courses your inputs must be between 0 and",
+                              len(courses.list) + 1)
                         break
                 else:
                     sel_courses = list(courses.list[x - 1] for x in input_list)
-                    sel_courses_link = list(courses.links[x-1] for x in input_list)
+                    sel_courses_link = list(courses.links[x - 1] for x in input_list)
                     break
 
     return sel_courses, sel_courses_link
@@ -428,13 +435,15 @@ def download_from_course(course):
                             if chunk:
                                 f.write(chunk)
                                 downloaded += len(chunk)
-                            downloaded_percentage = int((downloaded/file_size)*100)
+                            downloaded_percentage = int((downloaded / file_size) * 100)
                             print('{0}% Completed'.format(downloaded_percentage),
-                                  '\b'.rjust(12+len(str(downloaded_percentage)), '\b'), end='', flush=True)
+                                  '\b'.rjust(12 + len(str(downloaded_percentage)), '\b'), end='',
+                                  flush=True)
                         else:
                             downloading.clear()
                             c.execute(
-                                "insert into {0} (filename, link) values  ('{1}','{2}')".format(course, filename, link))
+                                "insert into {0} (filename, link) values  ('{1}','{2}')".format(
+                                    course, filename, link))
                             conn.commit()
                             print(15 * ' ', 15 * '\b', sep='', end='')
                             print('finished.')
@@ -500,7 +509,8 @@ def download_without_database(course):
                                 downloaded += len(chunk)
                             downloaded_percentage = int((downloaded / file_size) * 100)
                             print('{0}% Completed'.format(downloaded_percentage),
-                                  '\b'.rjust(12 + len(str(downloaded_percentage)), '\b'), end='', flush=True)
+                                  '\b'.rjust(12 + len(str(downloaded_percentage)), '\b'), end='',
+                                  flush=True)
                         else:
                             downloading.clear()
                             print(15 * ' ', 15 * '\b', sep='', end='')
@@ -515,9 +525,6 @@ def download_without_database(course):
                 raise SystemExit
         else:
             print('\r' + name + ' is not downloadable')
-
-
-
 
 
 def inp():
@@ -549,7 +556,7 @@ def inp():
             break
         elif c == '\x1a':
             # send ctrl+z signal to program
-           os.kill(os.getpid(), signal.SIGTSTP)
+            os.kill(os.getpid(), signal.SIGTSTP)
     return
 
 
@@ -588,7 +595,7 @@ def run_engine():
     setattr(courses, 'list', [])
     setattr(courses, 'links', [])
     get_courses()
-    print(len(courses.list)+1, ') All Courses', sep='')
+    print(len(courses.list) + 1, ') All Courses', sep='')
     create_tables(courses.list)
     make_directories(courses.list)
     selected_courses, selected_courses_links = get_selected_courses()
@@ -603,10 +610,11 @@ def run_engine():
     resume.set()
     for selected_course in selected_courses:
         if getattr(files, selected_course) and getattr(names, selected_course):
-            # download_from_course(selected_course)
-            download_without_database(selected_course)
+            download_from_course(selected_course)
+            print()
+            # download_without_database(selected_course)
         else:
-            print("\rNo files or topics in " + selected_course + ' course')
+            print("\rNo files or topics in " + selected_course + ' course\n')
 
 
 with requests.Session() as session:
