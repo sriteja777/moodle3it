@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+
+if [[ ! -z "$MOODLE_VIRTUALENVPATH" ]]
+then
+    # echo "came"
+    venv_path=$MOODLE_VIRTUALENVPATH/bin/activate
+    source $venv_path
+fi
+
+script_dir=`dirname "$BASH_SOURCE"`
+
+python $script_dir/../all.py
