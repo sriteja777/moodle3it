@@ -1,3 +1,4 @@
+import getpass
 import logging
 import os
 import re
@@ -11,6 +12,7 @@ import bs4
 import requests
 from humanize import naturalsize
 
+from config import COLORS, END_COLOR
 from connection import *
 from getch import _GetchUnix
 
@@ -21,7 +23,23 @@ resume = threading.Event()
 cancel = threading.Event()
 kb_interrupt = threading.Event()
 downloading = threading.Event()
-path_to_download = '/home/sriteja/iiit/academics/sem3/'
+# path_to_download = '/home/sriteja/iiit/academics/sem4/'
+
+try:
+    MOODLE_USERNAME = os.environ['MOODLE_USERNAME']
+    MOODLE_PASSWORD = os.environ['MOODLE_PASSWORD']
+    path_to_download = os.environ['MOODLE_FILES_PATH']
+except KeyError:
+    print(
+        "You can set three environment variables MOODLE_USERNAME, MOODLE_PASSWORD & MOODLE_FILES_PATH in order to avoid typing every time.")
+    MOODLE_USERNAME = input("Enter your email id: ")
+    MOODLE_PASSWORD = getpass.getpass("Enter your password: ")
+    while True:
+        path_to_download = input(
+            "Enter the path to the directory in which the files have to download: ")
+        if os.path.isdir(path_to_download):
+            break
+        print("Sorry the path you given is not a correct path, please try again.")
 
 
 class ObjectSetup(object):
@@ -149,8 +167,8 @@ def set_login_data():
     """
     url = 'https://login.iiit.ac.in/cas/login'
     execution_value = "461b10b6-4711-4b1e-8ae6-45a5c194f0a0_ZXlKaGJHY2lPaUpJVXpVeE1pSjkuVWpVNWFsQTFWbVpMTlRsalNVNTBXVzFKWVZKYVMyczFWRlEyVDNZNFpsVTNWekJwZGxaVk5VNDFjbEp0YmxkeVZqQmxNbk0wZERSa09FOUdObGQyVG1NNGRGbDRla3hxVGt4a1kxZzJUVXRWY2xwSmNYaHJUM2d2U1hsaFVHbzFURloxWmpOV1ZtZDZUbFJVVURoVldrWnNVbWsyTXpOaWJHMU5lbHBTUWxscmRuRTJTRkZ0Um01UFVGUnNka1ZoTHpWaFkzQnNNRVkzTjNOUGVrNTRlSEkyUms5WmFVZENSV2hqTjJKdVNqWkZUSGgyY1RNeFlXdFlibmR2Y0dVMVZtOVVRa1J2WlZSQlZXTTJLMnczV2tNemRHWm9ZVlYzTVd0Vk1UUjBSM2t3YVdVMmJWcFhZVTF2SzJrMFdYSnVla0Z2ZFZWeGMxbDVlVFpCYm1aS1pEZEdRbE5tY1VWRWFHZFZWMk5sTkRCUlpFUkRibTVxTkRWbmJEQXdLMU55YVVFNFZtbHBWV0ZGTmtVelRHNXZSRmhxYVdRelNsTnVVbVpIV25CQk4xaENMM1ZvTkhvNGEybEhRMUo0VFVJeldXRkhhMjF0ZUZwUk5WUldNRWRFYXpGRVZtZE5NemQ1UWtwdFQwYzNiRlZsVUU1eGMwOVVPVEozWkdsUGFrWTNOMm95V1RKNk9IbHNLek16ZVdNNWFXVlJObXhvVGpoTk9YQkJVMXBHU25wck5XMHhTMXBNVGxWcldrbHJVbmRxVGk5MWEzSXZiakZWY0RCdmVEUlZWU3RwZURSRFlWbFpNR0Z1ZFhrNVZFMVhhMWNyYTIwclRrbGxaM2cyVDFJNGMxSlljRWszVWpSWlV6QlJhVEUwUmxOdE1WVndXbVJXVldSc1RtMURUREZ2YmpsVFJFNW9NRE55YW1WTVJVWnZRMGxQTmxSTU9ETlJlbXd3WVdnNGVGQjNkMVpWYkdkeU5uVlRjVTlFYTBaRmFIWXlRME5pUm5GUVZXTXdjMnMxTm5OelRrRnNlR1EyVjBwSmNtOUdkRzFsTjA1aGNXTkZaRGQ2ZFRoVGQyVXlRa2hyZVUxc2JtSnJObFZTYm1JM1pHNUNkV2hNU0hOaFIzSklOR0ZUY0RsS01XRmFNWFZFTW5sWlQzWmhia1V4YTNodGNIaHVOa0V6VGpaTU5HWmlaMFU0VkZwMk1uSkZRbGxLYVcxeFdVMVBOMUZLVm14RFFuQXJSbXBFUW5reFVHcHhkVkZIZDB4QmNEUjVPVVZ4ZG5JeWVpOVVNR1JDVDBWbEwxVmhUV0ZYZW5CelZsZGhia3RTUTBWQ1dEbEpWMmRMSzJadGNUWmlTV3gyWkZkQ2MwVTNXRTlJWlc1TFNGbGlTRXhpTVhCWVVubFllVXRpTkRoeGRTdFZRekZUTjFsb1Jpc3lUbEowTDB0aFEwRXdZbFZaTm1oQ1JWQk5abEJVUjI1NlYwbGlVekZUV1VGMFNFSlVOR3hMUWs4NVJWVTRUaTltYW1wRlZreGlPRFJQZVdJMGFWaEhMeXMxV0VZM2FucEtUR0ZITUU1Uk0wWlFiVVphZVU5bVpYQlNhalpEVnpOWWRHZEplQzlWVGxsSlRGUk5SMnRWVms1U1VVMHJORmRTSzNaVlRVNWxSSEpCV21WTlBRLnhOTXo4RllhWXBZcmJFclBEVndpNnlseU93a3hEQnN0RjZEODNYSmFfUngyc1p0TU9LSXBFSDM4NGV5cFpjMGZyTXlnUmNYMmZvZEsxaHpxM3g5TEhn"
-    username = 'sriteja.sugoor@students.iiit.ac.in'
-    password = 'Ajet@72sri'
+    username = MOODLE_USERNAME
+    password = MOODLE_PASSWORD
     return url, execution_value, username, password
 
 
@@ -176,7 +194,7 @@ def connect_to_moodle():
     global page
     try:
         pg = session.get('https://moodle.iiit.ac.in/my/')
-        print('Accessed to Moodle')
+        print(COLORS['Green'] + 'Accessed to Moodle' + END_COLOR)
     except requests.ConnectionError:
         print(
             "Looks like you are not connected to iiit vpn, run iiit -c command to connect to iiit vpn")
@@ -193,17 +211,20 @@ def get_courses():
     """
     global courses
     for i in courses.html:
-        courses.list.append(i.text.replace(' ', '_').replace('-', ''))
+        courses.list.append(i.text.replace(' ', '_').replace('-', '').replace('.', ''))
         courses.links.append(i.find('a').get('href'))
 
     if not courses.list or not courses.html:
         print(
-            "Looks like there is some problem in getting moodle dashboard page, try after some time"
+            COLORS[
+                'Red'] + "Looks like there is some problem in getting moodle dashboard page, try after some time" + END_COLOR
         )
         raise SystemExit(5)
     else:
-        print("You are registered to the following courses for this sem")
-        [print(s_no, ') ', course, '(', link, ')', sep='') for course, s_no, link in
+        print(
+            COLORS['Pink'] + "You are registered to the following courses for this sem" + END_COLOR)
+        [print(s_no, ') ', course, '(', COLORS['Blue'] + link + END_COLOR, ')', sep='') for
+         course, s_no, link in
          zip(courses.list,
              range(1, len(courses.list) + 1),
              courses.links)]
@@ -240,7 +261,7 @@ def login():
     setattr(soup, 'login', sp)
 
     if sp.find('p').text == success_text:
-        print('Login Successful')
+        print(COLORS['Green'] + 'Login Successful' + END_COLOR)
     else:
         # print(username, password)
         # print(pg.text)
@@ -270,6 +291,8 @@ def get_links(courses_list, courses_links):
         topics = getattr(soup, course).select('.accesshide')
         setattr(files, course, [])
         setattr(names, course, [])
+        if DEBUG:
+            print(topics)
         for i in topics:
             if i.text == " File":
                 getattr(files, course).append(i.find_parent('a').get('href'))
@@ -291,7 +314,6 @@ def get_all_courses():
     if DEBUG:
         print(sp.prettify())
         for i in sp.select('.custom_course_menu_category'):
-
             print('got')
             print(i.text)
         print()
@@ -302,9 +324,10 @@ def get_all_courses():
     for i in sp.select('.custom_course_menu_category'):
         for j in i:
             if isinstance(j, bs4.element.NavigableString):
-                print(j.strip().replace(' ', '_'))
+                print(COLORS['Yellow'] + j.strip().replace(' ', '_') + END_COLOR)
         for li in i.select('.custom_course_menu_course'):
-            print(li.text + '(' + li.find('a').get('href') + ')')
+            print(COLORS['Brown'] + li.text + END_COLOR + '(' + COLORS['Blue'] + li.find('a').get(
+                'href') + END_COLOR + ')')
         print()
 
     return
@@ -330,7 +353,7 @@ def get_selected_courses():
                 if not 0 < input_list[0] < len(courses.list) + 2:
                     print("Sorry your input must be in between 0 and", len(courses.list) + 2)
                 else:
-                    if input_list[0] == 8:
+                    if input_list[0] == len(courses.list) + 1:
                         sel_courses = courses.list
                         sel_courses_link = courses.links
                     else:
@@ -591,7 +614,7 @@ def get_custom_file(course, link, filename=None):
 
 
 def run_engine():
-    global session
+    global session, files, names
     setattr(page, 'login', login())
     setattr(page, 'dashboard', connect_to_moodle())
     get_all_courses()
@@ -605,22 +628,32 @@ def run_engine():
     create_tables(courses.list)
     make_directories(courses.list)
     selected_courses, selected_courses_links = get_selected_courses()
+
+    # Uncomment the below lines if you want to download files from a specific course.
+    # selected_courses = ["Operating_Systems"]
+    # selected_courses_links = ["https://moodle.iiit.ac.in/course/view.php?id=1377"]
+
     setattr(page, 'temp', '')
     setattr(soup, 'temp', '')
     get_links(selected_courses, selected_courses_links)
-
+    if DEBUG:
+        print(files.Operating_Systems, names.Operating_Systems)
     if not ASK_DOWNLOAD:
         inp_thread = threading.Thread(target=inp)
         inp_thread.daemon = True
         inp_thread.start()
     resume.set()
     for selected_course in selected_courses:
+        if DEBUG:
+            print('files.' + selected_course + '->', getattr(files, selected_course))
         if getattr(files, selected_course) and getattr(names, selected_course):
             download_from_course(selected_course)
             print()
             # download_without_database(selected_course)
         else:
-            print("\rNo files or topics in " + selected_course + ' course\n')
+            print("\rNo files or topics in " + selected_course + ' course')
+
+    print('\r')
 
 
 with requests.Session() as session:
