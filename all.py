@@ -12,9 +12,10 @@ import bs4
 import requests
 from humanize import naturalsize
 
-from config import COLORS, END_COLOR
+from config import COLORS, END_COLOR, COURSE_COLOR, LINK_COLOR, ERROR_COLOR
 from connection import *
 from getch import _GetchUnix
+from utils import color_text
 
 dashboard_url = 'https://moodle.iiit.ac.in/my/'
 chunk_size = 100000
@@ -194,7 +195,7 @@ def connect_to_moodle():
     global page
     try:
         pg = session.get('https://moodle.iiit.ac.in/my/')
-        print(COLORS['Green'] + 'Accessed to Moodle' + END_COLOR)
+        print(color_text('Accessed to Moodle', 'green'))
     except requests.ConnectionError:
         print(
             "Looks like you are not connected to iiit vpn, run iiit -c command to connect to iiit vpn")
@@ -216,14 +217,13 @@ def get_courses():
 
     if not courses.list or not courses.html:
         print(
-            COLORS[
-                'Red'] + "Looks like there is some problem in getting moodle dashboard page, try after some time" + END_COLOR
-        )
+             color_text("Looks like there is some problem in getting moodle dashboard page, try after some time", ERROR_COLOR))
         raise SystemExit(5)
     else:
         print(
-            COLORS['Pink'] + "You are registered to the following courses for this sem" + END_COLOR)
-        [print(s_no, ') ', course, '(', COLORS['Blue'] + link + END_COLOR, ')', sep='') for
+            color_text("You are registered to the following courses for this sem", "pink"))
+        s = color_text("{:<30}", COURSE_COLOR)
+        [print(s_no, ') ', s.format(course), '(', color_text(link, LINK_COLOR), ')', sep='') for
          course, s_no, link in
          zip(courses.list,
              range(1, len(courses.list) + 1),
@@ -261,7 +261,7 @@ def login():
     setattr(soup, 'login', sp)
 
     if sp.find('p').text == success_text:
-        print(COLORS['Green'] + 'Login Successful' + END_COLOR)
+        print(color_text('Login Successful', 'green'))
     else:
         # print(username, password)
         # print(pg.text)
@@ -287,7 +287,7 @@ def get_links(courses_list, courses_links):
         setattr(page, course, page.temp)
         soup.temp = bs4.BeautifulSoup(getattr(page, course).text, 'lxml')
         setattr(soup, course, soup.temp)
-        print(course, end='...')
+        print(color_text(course, 'brown'), end='...')
         topics = getattr(soup, course).select('.accesshide')
         setattr(files, course, [])
         setattr(names, course, [])
@@ -321,13 +321,15 @@ def get_all_courses():
             if isinstance(i, bs4.element.NavigableString):
                 print(i.strip())
     print()
+    color_length = len(COURSE_COLOR + END_COLOR)
+    space_fmt = "{:<" + str(color_length + 33) + "}"
     for i in sp.select('.custom_course_menu_category'):
         for j in i:
             if isinstance(j, bs4.element.NavigableString):
-                print(COLORS['Yellow'] + j.strip().replace(' ', '_') + END_COLOR)
+                print(color_text(j.strip().replace(' ', '_'), "yellow"))
         for li in i.select('.custom_course_menu_course'):
-            print(COLORS['Brown'] + li.text + END_COLOR + '(' + COLORS['Blue'] + li.find('a').get(
-                'href') + END_COLOR + ')')
+            print(space_fmt.format(color_text(li.text, COURSE_COLOR)) + '(' + color_text(li.find('a').get(
+                'href'), LINK_COLOR) + ')')
         print()
 
     return
@@ -426,7 +428,7 @@ def download_from_course(course):
     os.chdir(path_to_download)
     os.chdir(course)
     c, conn = connection()
-    print('\r' + "Now downloading files from the course", course, '...')
+    print('\r' + color_text(course, COURSE_COLOR) + ' :')
     for link, name in zip(getattr(files, course), getattr(names, course)):
         x = c.execute("select filename from {0} where link='{1}'".format(course, link))
         if not int(x) > 0:
@@ -441,7 +443,7 @@ def download_from_course(course):
                         continue
 
                     file_size = int(file_headers['content-length'])
-                    print('\r', filename, '(', naturalsize(file_size), ')',
+                    print('\r', '\t' + color_text(filename, 'cyan'), '(', naturalsize(file_size), ')',
                           ' downloading... ', flush=True, sep='', end='')
                     downloaded = 0
                     downloading.set()
@@ -490,13 +492,13 @@ def download_from_course(course):
                     #     os.remove(filename)
                     raise SystemExit
             else:
-                print('\r' + name + ' is not downloadable')
+                print('\r' + '\t' + name + ' is not downloadable')
         else:
             filename = c.fetchone()[0]
-            print('\r' + filename + ' is already downloaded')
+            print('\r' + '\t' + color_text(filename, 'cyan') + ' is already downloaded')
     conn.commit()
     c.close()
-    print("\rFinished downloading files from the course", course)
+    # print("\rFinished downloading files from the course", color_text(course, COURSE_COLOR))
     os.chdir(path_to_download)
     return 0
 
@@ -624,11 +626,11 @@ def run_engine():
     setattr(courses, 'list', [])
     setattr(courses, 'links', [])
     get_courses()
-    print(len(courses.list) + 1, ') All Courses', sep='')
+    print(len(courses.list) + 1, ')' + color_text('All Courses', COURSE_COLOR), sep='')
     create_tables(courses.list)
     make_directories(courses.list)
     selected_courses, selected_courses_links = get_selected_courses()
-
+    print()
     # Uncomment the below lines if you want to download files from a specific course.
     # selected_courses = ["Operating_Systems"]
     # selected_courses_links = ["https://moodle.iiit.ac.in/course/view.php?id=1377"]
@@ -636,6 +638,7 @@ def run_engine():
     setattr(page, 'temp', '')
     setattr(soup, 'temp', '')
     get_links(selected_courses, selected_courses_links)
+    print()
     if DEBUG:
         print(files.Operating_Systems, names.Operating_Systems)
     if not ASK_DOWNLOAD:
@@ -651,7 +654,8 @@ def run_engine():
             print()
             # download_without_database(selected_course)
         else:
-            print("\rNo files or topics in " + selected_course + ' course')
+            print("\r" + color_text(selected_course, COURSE_COLOR) + ' :\n' + '\r\t' + 'No files\n')
+            # print("\rNo files or topics in " + color_text(selected_course, COURSE_COLOR) + ' course', '\n')
 
     print('\r')
 
