@@ -1,7 +1,7 @@
 import bs4
 import requests
 
-import all
+from src import all
 
 login_page = all.login()
 index = 'https://mess.iiit.ac.in/mess/web/index.php'

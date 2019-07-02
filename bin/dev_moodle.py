@@ -18,7 +18,8 @@ try:
     subprocess.Popen([env_path, APP_DIR + 'all.py'])
 except Exception as e:
     pass
-    import all
+    from src import all
+
     all.run_engine()
     # subprocess.call(APP_DIR + 'all.py')
 

@@ -13,7 +13,7 @@ import requests
 from humanize import naturalsize
 
 
-from config import COLORS, END_COLOR, COURSE_COLOR, LINK_COLOR, ERROR_COLOR, WINDOWS
+from config import END_COLOR, COURSE_COLOR, LINK_COLOR, ERROR_COLOR, WINDOWS
 from connection import *
 from getch import getch
 from utils import color_text
