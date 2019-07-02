@@ -1,3 +1,4 @@
+import sys
 COLORS = {
     'Black': '\x1b[0;30m',
     'Blue': '\x1b[1;34m',
@@ -23,6 +24,15 @@ COLORS = {
     'Fish Color': '\x1b[38;5;130m',
     'Moving Bridges': '\x1b[48;5;94m'
 }
+
+LINUX = False
+WINDOWS = False
+if sys.platform.system() == "Windows":
+    CLEAR_COMMAND = "cls"
+    WINDOWS = True
+else:
+    CLEAR_COMMAND = "clear"
+
 
 END_COLOR = '\033[0m'
 COURSE_COLOR = COLORS['Brown']
