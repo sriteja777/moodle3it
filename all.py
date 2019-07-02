@@ -12,14 +12,16 @@ import bs4
 import requests
 from humanize import naturalsize
 
+
 from config import COLORS, END_COLOR, COURSE_COLOR, LINK_COLOR, ERROR_COLOR
 from connection import *
-from getch import _GetchUnix
+from getch import getch
 from utils import color_text
+from database import Database
 
 dashboard_url = 'https://moodle.iiit.ac.in/my/'
 chunk_size = 100000
-getch = _GetchUnix()
+
 resume = threading.Event()
 cancel = threading.Event()
 kb_interrupt = threading.Event()
@@ -52,9 +54,12 @@ soup = ObjectSetup()
 files = ObjectSetup()
 names = ObjectSetup()
 courses = ObjectSetup()
+database = None
 
 ASK_DOWNLOAD = False
 DEBUG = False
+MY_SQL = False
+
 while True:
     if len(sys.argv) > 1:
         if sys.argv[1] == '-a':
@@ -131,15 +136,20 @@ def create_tables(courses_list):
     :return: int -- the return code
     :raise: SystemExit
     """
+
+    global database
     try:
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            c, conn = connection()
-            for course in courses_list:
-                c.execute(
-                    "create table if not exists {0} (filename varchar(100), link varchar(100))".format(
-                        course))
-            conn.commit()
+        if MY_SQL:
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                c, conn = connection()
+                for course in courses_list:
+                    c.execute(
+                        "create table if not exists {0} (filename varchar(100), link varchar(100))".format(
+                            course))
+                conn.commit()
+        else:
+            database.create_course_tables(courses_list)
     except Exception as e:
         print("Looks like there is a problem in creating tables and the problem is {}.".format(e))
         raise SystemExit(6)
@@ -261,7 +271,9 @@ def login():
     setattr(soup, 'login', sp)
 
     if sp.find('p').text == success_text:
-        print(color_text('Login Successful', 'green'))
+        os.system("cls")
+        print(color_text('Login Successful', 'Green'))
+        # exit(1)
     else:
         # print(username, password)
         # print(pg.text)
@@ -427,10 +439,14 @@ def download_from_course(course):
     # cur_wor_dir = os.getcwd()
     os.chdir(path_to_download)
     os.chdir(course)
-    c, conn = connection()
+    if MY_SQL:
+        c, conn = connection()
     print('\r' + color_text(course, COURSE_COLOR) + ' :')
     for link, name in zip(getattr(files, course), getattr(names, course)):
-        x = c.execute("select filename from {0} where link='{1}'".format(course, link))
+        if MY_SQL:
+            x = c.execute("select filename from {0} where link='{1}'".format(course, link))
+        else:
+            x, sqlite_fn = database.check_file(course, link)
         if not int(x) > 0:
             # start = time.clock()
             file_headers = session.head(link, allow_redirects=True).headers
@@ -459,6 +475,7 @@ def download_from_course(course):
                                 raise KeyboardInterrupt
                             resume.wait()
                             if cancel.isSet():
+                                f.close()
                                 cancel_download(filename)
                                 cancel.clear()
                                 downloading.clear()
@@ -472,10 +489,13 @@ def download_from_course(course):
                                   flush=True)
                         else:
                             downloading.clear()
-                            c.execute(
-                                "insert into {0} (filename, link) values  ('{1}','{2}')".format(
-                                    course, filename, link))
-                            conn.commit()
+                            if MY_SQL:
+                                c.execute(
+                                    "insert into {0} (filename, link) values  ('{1}','{2}')".format(
+                                        course, filename, link))
+                                conn.commit()
+                            else:
+                                database.insert_file(course, link, filename)
                             print(15 * ' ', 15 * '\b', sep='', end='')
                             print('finished.')
 
@@ -484,9 +504,13 @@ def download_from_course(course):
                 except KeyboardInterrupt:
                     # print('cancelled')
                     cancel_download(filename)
-                    c.execute("delete from {0} where link = '{1}'".format(course, link))
-                    conn.commit()
-                    c.close()
+                    if MY_SQL:
+                        c.execute("delete from {0} where link = '{1}'".format(course, link))
+                        conn.commit()
+                        c.close()
+                    else:
+                        database.delete_entry(course, link)
+
                     file.close()
                     # if os.path.isfile(filename):
                     #     os.remove(filename)
@@ -494,10 +518,14 @@ def download_from_course(course):
             else:
                 print('\r' + '\t' + name + ' is not downloadable')
         else:
-            filename = c.fetchone()[0]
+            if MY_SQL:
+                filename = c.fetchone()[0]
+            else:
+                filename = sqlite_fn
             print('\r' + '\t' + color_text(filename, 'cyan') + ' is already downloaded')
-    conn.commit()
-    c.close()
+    if MY_SQL:
+        conn.commit()
+        c.close()
     # print("\rFinished downloading files from the course", color_text(course, COURSE_COLOR))
     os.chdir(path_to_download)
     return 0
@@ -564,10 +592,15 @@ def inp():
 
     :return: int -- the return status
     """
+    # exit(12)
     while True:
+        # print("dfsdfssfsd")
         c = getch()
+        # print(c * 100)
         if downloading.is_set():
+            # print(c*10, end='')
             if c == ' ':
+                # print('m' * 1000)
                 # pause the download
                 if resume.is_set():
                     resume.clear()
@@ -616,7 +649,7 @@ def get_custom_file(course, link, filename=None):
 
 
 def run_engine():
-    global session, files, names
+    global session, files, names, database
     setattr(page, 'login', login())
     setattr(page, 'dashboard', connect_to_moodle())
     get_all_courses()
@@ -627,6 +660,8 @@ def run_engine():
     setattr(courses, 'links', [])
     get_courses()
     print(len(courses.list) + 1, ')' + color_text('All Courses', COURSE_COLOR), sep='')
+
+    database = Database("temp.db")
     create_tables(courses.list)
     make_directories(courses.list)
     selected_courses, selected_courses_links = get_selected_courses()
@@ -642,9 +677,12 @@ def run_engine():
     if DEBUG:
         print(files.Operating_Systems, names.Operating_Systems)
     if not ASK_DOWNLOAD:
+        # exit(1)
         inp_thread = threading.Thread(target=inp)
         inp_thread.daemon = True
-        inp_thread.start()
+        k = inp_thread.start()
+        # print(k)
+        # exit(1)
     resume.set()
     for selected_course in selected_courses:
         if DEBUG:
