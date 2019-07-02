@@ -1,4 +1,4 @@
-import sys
+import platform
 COLORS = {
     'Black': '\x1b[0;30m',
     'Blue': '\x1b[1;34m',
@@ -27,7 +27,7 @@ COLORS = {
 
 LINUX = False
 WINDOWS = False
-if sys.platform.system() == "Windows":
+if platform.system() == "Windows":
     CLEAR_COMMAND = "cls"
     WINDOWS = True
 else:
