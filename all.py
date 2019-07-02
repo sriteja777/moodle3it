@@ -13,7 +13,7 @@ import requests
 from humanize import naturalsize
 
 
-from config import COLORS, END_COLOR, COURSE_COLOR, LINK_COLOR, ERROR_COLOR
+from config import COLORS, END_COLOR, COURSE_COLOR, LINK_COLOR, ERROR_COLOR, WINDOWS
 from connection import *
 from getch import getch
 from utils import color_text
@@ -271,7 +271,8 @@ def login():
     setattr(soup, 'login', sp)
 
     if sp.find('p').text == success_text:
-        os.system("cls")
+        if WINDOWS:
+            os.system("cls")
         print(color_text('Login Successful', 'Green'))
         # exit(1)
     else:
@@ -700,4 +701,9 @@ def run_engine():
 
 with requests.Session() as session:
     if __name__ == "__main__":
+        # print("\033[?1049h\033[H")
         run_engine()
+        # sys.stdin.write('')
+        # print("Press q and then any key for a safe exit.")
+        # getch()
+        # print("\033[?1049l")
