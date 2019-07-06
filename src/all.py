@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import getpass
 import logging
 import os
@@ -7,13 +8,14 @@ import sys
 import threading
 import warnings
 from subprocess import call
+import atexit
 
 import bs4
 import requests
 from humanize import naturalsize
 
 
-from config import END_COLOR, COURSE_COLOR, LINK_COLOR, ERROR_COLOR, WINDOWS
+from config import END_COLOR, COURSE_COLOR, LINK_COLOR, ERROR_COLOR, WINDOWS, LINUX
 from connection import *
 from getch import getch
 from utils import color_text
@@ -26,12 +28,18 @@ resume = threading.Event()
 cancel = threading.Event()
 kb_interrupt = threading.Event()
 downloading = threading.Event()
+stdin_fd = sys.stdin.fileno()
+old_settings_term = None
+# print("LINUX: ", LINUX)
+if LINUX:
+    import termios
+    old_settings_term = termios.tcgetattr(stdin_fd)
 # path_to_download = '/home/sriteja/iiit/academics/sem4/'
 
 try:
     MOODLE_USERNAME = os.environ['MOODLE_USERNAME']
     MOODLE_PASSWORD = os.environ['MOODLE_PASSWORD']
-    path_to_download = os.environ['MOODLE_FILES_PATH']
+    path_to_download = os.path.expanduser(os.environ['MOODLE_FILES_PATH'])
 except KeyError:
     print(
         "You can set three environment variables MOODLE_USERNAME, MOODLE_PASSWORD & MOODLE_FILES_PATH in order to avoid typing every time.")
@@ -40,6 +48,7 @@ except KeyError:
     while True:
         path_to_download = input(
             "Enter the path to the directory in which the files have to download: ")
+        path_to_download = os.path.expanduser(path_to_download)
         if os.path.isdir(path_to_download):
             break
         print("Sorry the path you given is not a correct path, please try again.")
@@ -698,9 +707,20 @@ def run_engine():
 
     print('\r')
 
+def exit_handler():
+    global stdin_fd, old_settings_term
+    if WINDOWS:
+        return
+    if LINUX:
+        import termios
+        termios.tcsetattr(stdin_fd, termios.TCSADRAIN, old_settings_term)
+
 
 with requests.Session() as session:
     if __name__ == "__main__":
+        atexit.register(exit_handler)
+        # print(old_settings_term)
+        # if LIN
         # print("\033[?1049h\033[H")
         run_engine()
         # sys.stdin.write('')
