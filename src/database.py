@@ -1,8 +1,13 @@
 import sqlite3
-
+import os
 
 class Database:
     def __init__(self, database):
+        direc = os.path.expanduser("~/.moodle3it")
+        if not os.path.isdir(direc):
+            os.mkdir(direc)
+        os.chdir(direc)
+
         self.conn = sqlite3.connect(database)
 
     def create_course_tables(self, courses_list):
