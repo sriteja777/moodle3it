@@ -30,7 +30,11 @@ WINDOWS = False
 if platform.system() == "Windows":
     CLEAR_COMMAND = "cls"
     WINDOWS = True
+elif platform.system() == "Linux":
+    LINUX = True
+    CLEAR_COMMAND = "clear"
 else:
+    LINUX = True
     CLEAR_COMMAND = "clear"
 
 
