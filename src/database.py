@@ -1,6 +1,7 @@
 import sqlite3
 import os
 
+
 class Database:
     def __init__(self, database):
         direc = os.path.expanduser("~/.moodle3it")

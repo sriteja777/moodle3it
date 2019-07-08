@@ -18,7 +18,7 @@ shared_files_path = '/usr/share/moodle3it'
 if os.path.isdir(shared_files_path):
     sys.path.append(shared_files_path)
 
-from config import END_COLOR, COURSE_COLOR, LINK_COLOR, ERROR_COLOR, WINDOWS, LINUX
+from config import END_COLOR, COURSE_COLOR, LINK_COLOR, ERROR_COLOR, WINDOWS, LINUX, WARNING_COLOR
 from connection import *
 from getch import getch
 from utils import color_text
@@ -264,6 +264,7 @@ def login():
     url, execution_value, username, password = set_login_data()
     success_text = 'You, '+MOODLE_USERNAME+', have successfully' \
                    ' logged into the Central Authentication Service.'
+    password_expiry_text = "Your password expires in "
     try:
         pg = session.post(url,
                           data={'username': username, 'password': password,
@@ -287,9 +288,15 @@ def login():
             os.system("cls")
         print(color_text('Login Successful', 'Green'))
         # exit(1)
+    elif password_expiry_text in sp.find('p').text:
+        print(color_text("Warning: " + sp.find('p').text, WARNING_COLOR))
+        print(color_text('Login Successful', 'Green'))
+        # soup.find('a', {"class": "button"}).get('href')
+        # session.
     else:
         # print(username, password)
         print(pg.text)
+        print(sp.find('p').text)
         # print(soup.login)
         print(
             'Login Failure. Try checking credentials or change the execution value. Even if the problem persists try after some time.')
