@@ -259,7 +259,7 @@ def login():
     """
     global session, soup
     url, execution_value, username, password = set_login_data()
-    success_text = 'You, sriteja.sugoor@students.iiit.ac.in, have successfully' \
+    success_text = 'You,'+MOODLE_USERNAME+', have successfully' \
                    ' logged into the Central Authentication Service.'
     try:
         pg = session.post(url,
