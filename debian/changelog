@@ -1,0 +1,79 @@
+moodle3it (0.04-0ubuntu2) xenial; urgency=medium
+
+  * fixed login error
+
+ -- Sriteja Sugoor <sritejakittu777@gmail.com>  Sun, 07 Jul 2019 02:33:53 +0530
+
+moodle3it (0.04-0ubuntu1) bionic; urgency=medium
+
+  * fixed login error
+
+ -- Sriteja Sugoor <sritejakittu777@gmail.com>  Sun, 07 Jul 2019 02:24:36 +0530
+
+moodle3it (0.03-0ubuntu9) xenial; urgency=medium
+
+  * for xenial
+
+ -- Sriteja Sugoor <sritejakittu777@gmail.com>  Sun, 07 Jul 2019 01:07:14 +0530
+
+moodle3it (0.03-0ubuntu8) bionic; urgency=medium
+
+  * added import path
+
+ -- Sriteja Sugoor <sritejakittu777@gmail.com>  Sat, 06 Jul 2019 23:08:07 +0530
+
+moodle3it (0.03-0ubuntu7) bionic; urgency=medium
+
+  * corrected directory path
+
+ -- Sriteja Sugoor <sritejakittu777@gmail.com>  Sat, 06 Jul 2019 22:40:03 +0530
+
+moodle3it (0.03-0ubuntu6) bionic; urgency=medium
+
+  * corrected file name
+
+ -- Sriteja Sugoor <sritejakittu777@gmail.com>  Sat, 06 Jul 2019 22:31:27 +0530
+
+moodle3it (0.03-0ubuntu5) bionic; urgency=medium
+
+  * set installation path
+
+ -- Sriteja Sugoor <sritejakittu777@gmail.com>  Sat, 06 Jul 2019 22:21:15 +0530
+
+moodle3it (0.03-0ubuntu4) bionic; urgency=medium
+
+  * fixed directory structure
+
+ -- Sriteja Sugoor <sritejakittu777@gmail.com>  Sat, 06 Jul 2019 20:59:59 +0530
+
+moodle3it (0.03-0ubuntu3) bionic; urgency=medium
+
+  * changed package name
+
+ -- Sriteja Sugoor <sritejakittu777@gmail.com>  Sat, 06 Jul 2019 20:08:53 +0530
+
+moodle (0.03-0ubuntu2) bionic; urgency=medium
+
+  * for bionic
+
+ -- Sriteja Sugoor <sritejakittu777@gmail.com>  Sat, 06 Jul 2019 18:46:30 +0530
+
+moodle (0.03-0ubuntu1) xenial; urgency=high
+
+  * Fixed dependency db-helper bug (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Sriteja Sugoor <sritejakittu777@gmail.com>  Sat, 06 Jul 2019 17:33:01 +0530
+
+
+moodle (0.02-0ubuntu1) trusty; urgency=high
+
+  * Fixed dependency bug (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Sriteja Sugoor <sritejakittu777@gmail.com>  Sat, 06 Jul 2019 00:53:01 +0530
+
+
+moodle (0.01-0ubuntu1) trusty; urgency=medium
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Sriteja Sugoor <sritejakittu777@gmail.com>  Fri, 05 Jul 2019 23:06:01 +0530

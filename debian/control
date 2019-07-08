@@ -1,0 +1,14 @@
+Source: moodle3it
+Section: utils
+Priority: optional
+Maintainer: Sriteja Sugoor <sritejakittu777@gmail.com>
+Standards-Version: 4.1.2
+Build-Depends: debhelper (>= 9.20120311)
+#Vcs-Git: https://anonscm.debian.org/git/collab-maint/moodle.git
+#Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/moodle.git
+
+Package: moodle3it
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, python3, python3-pymysql, python3-requests, python3-bs4, python3-humanize, python3-pymysql
+Description: This package downloads files from moodle
+ This package downloads our files from courses in moodle.iiit.ac.in and places them in the corresponding courses directories.
