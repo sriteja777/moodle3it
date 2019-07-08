@@ -14,6 +14,9 @@ import bs4
 import requests
 from humanize import naturalsize
 
+shared_files_path = '/usr/share/moodle3it'
+if os.path.isdir(shared_files_path):
+    sys.path.append(shared_files_path)
 
 from config import END_COLOR, COURSE_COLOR, LINK_COLOR, ERROR_COLOR, WINDOWS, LINUX
 from connection import *
@@ -259,7 +262,7 @@ def login():
     """
     global session, soup
     url, execution_value, username, password = set_login_data()
-    success_text = 'You,'+MOODLE_USERNAME+', have successfully' \
+    success_text = 'You, '+MOODLE_USERNAME+', have successfully' \
                    ' logged into the Central Authentication Service.'
     try:
         pg = session.post(url,
@@ -286,7 +289,7 @@ def login():
         # exit(1)
     else:
         # print(username, password)
-        # print(pg.text)
+        print(pg.text)
         # print(soup.login)
         print(
             'Login Failure. Try checking credentials or change the execution value. Even if the problem persists try after some time.')

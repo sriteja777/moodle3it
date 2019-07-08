@@ -10,4 +10,4 @@ fi
 
 script_dir=`dirname "$BASH_SOURCE"`
 
-python $script_dir/../src/all.py
+python $script_dir/../src/moodle3it
