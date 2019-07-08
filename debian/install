@@ -1,2 +1,2 @@
-src/moodle3it usr/bin
-src/* usr/share/moodle3it
+src/moodle3it usr/bin/
+src/* usr/share/moodle3it/
