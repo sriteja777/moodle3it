@@ -1,5 +1,5 @@
 # moodle3it
-A project to download files from moodle
+A project to download files from moodle.iiit.ac.in
 Moodle is an open source where organisations use it to store their courses
 
 
