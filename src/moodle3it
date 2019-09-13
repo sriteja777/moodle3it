@@ -71,12 +71,23 @@ database = None
 ASK_DOWNLOAD = False
 DEBUG = False
 MY_SQL = False
+SINGLE_PAGE = False
+SINGLE_PAGE_LINK = ''
 
 while True:
     if len(sys.argv) > 1:
         if sys.argv[1] == '-a':
             ASK_DOWNLOAD = True
             print("ASK_DOWNLOAD setted")
+        elif sys.argv[1] == '-s':
+            SINGLE_PAGE = True
+            del sys.argv[1]
+            if 1 < len(sys.argv):
+                SINGLE_PAGE_LINK = sys.argv[1]
+            else:
+                print("Please provide a valid link")
+                raise SystemExit(11)
+
         elif sys.argv[1] == '-p':
             del sys.argv[1]
             if 1 < len(sys.argv):
@@ -188,10 +199,17 @@ def set_login_data():
     Returns the values required for logging in.
     :returns: the login data.
     """
+    global session
     url = 'https://login.iiit.ac.in/cas/login'
-    execution_value = "461b10b6-4711-4b1e-8ae6-45a5c194f0a0_ZXlKaGJHY2lPaUpJVXpVeE1pSjkuVWpVNWFsQTFWbVpMTlRsalNVNTBXVzFKWVZKYVMyczFWRlEyVDNZNFpsVTNWekJwZGxaVk5VNDFjbEp0YmxkeVZqQmxNbk0wZERSa09FOUdObGQyVG1NNGRGbDRla3hxVGt4a1kxZzJUVXRWY2xwSmNYaHJUM2d2U1hsaFVHbzFURloxWmpOV1ZtZDZUbFJVVURoVldrWnNVbWsyTXpOaWJHMU5lbHBTUWxscmRuRTJTRkZ0Um01UFVGUnNka1ZoTHpWaFkzQnNNRVkzTjNOUGVrNTRlSEkyUms5WmFVZENSV2hqTjJKdVNqWkZUSGgyY1RNeFlXdFlibmR2Y0dVMVZtOVVRa1J2WlZSQlZXTTJLMnczV2tNemRHWm9ZVlYzTVd0Vk1UUjBSM2t3YVdVMmJWcFhZVTF2SzJrMFdYSnVla0Z2ZFZWeGMxbDVlVFpCYm1aS1pEZEdRbE5tY1VWRWFHZFZWMk5sTkRCUlpFUkRibTVxTkRWbmJEQXdLMU55YVVFNFZtbHBWV0ZGTmtVelRHNXZSRmhxYVdRelNsTnVVbVpIV25CQk4xaENMM1ZvTkhvNGEybEhRMUo0VFVJeldXRkhhMjF0ZUZwUk5WUldNRWRFYXpGRVZtZE5NemQ1UWtwdFQwYzNiRlZsVUU1eGMwOVVPVEozWkdsUGFrWTNOMm95V1RKNk9IbHNLek16ZVdNNWFXVlJObXhvVGpoTk9YQkJVMXBHU25wck5XMHhTMXBNVGxWcldrbHJVbmRxVGk5MWEzSXZiakZWY0RCdmVEUlZWU3RwZURSRFlWbFpNR0Z1ZFhrNVZFMVhhMWNyYTIwclRrbGxaM2cyVDFJNGMxSlljRWszVWpSWlV6QlJhVEUwUmxOdE1WVndXbVJXVldSc1RtMURUREZ2YmpsVFJFNW9NRE55YW1WTVJVWnZRMGxQTmxSTU9ETlJlbXd3WVdnNGVGQjNkMVpWYkdkeU5uVlRjVTlFYTBaRmFIWXlRME5pUm5GUVZXTXdjMnMxTm5OelRrRnNlR1EyVjBwSmNtOUdkRzFsTjA1aGNXTkZaRGQ2ZFRoVGQyVXlRa2hyZVUxc2JtSnJObFZTYm1JM1pHNUNkV2hNU0hOaFIzSklOR0ZUY0RsS01XRmFNWFZFTW5sWlQzWmhia1V4YTNodGNIaHVOa0V6VGpaTU5HWmlaMFU0VkZwMk1uSkZRbGxLYVcxeFdVMVBOMUZLVm14RFFuQXJSbXBFUW5reFVHcHhkVkZIZDB4QmNEUjVPVVZ4ZG5JeWVpOVVNR1JDVDBWbEwxVmhUV0ZYZW5CelZsZGhia3RTUTBWQ1dEbEpWMmRMSzJadGNUWmlTV3gyWkZkQ2MwVTNXRTlJWlc1TFNGbGlTRXhpTVhCWVVubFllVXRpTkRoeGRTdFZRekZUTjFsb1Jpc3lUbEowTDB0aFEwRXdZbFZaTm1oQ1JWQk5abEJVUjI1NlYwbGlVekZUV1VGMFNFSlVOR3hMUWs4NVJWVTRUaTltYW1wRlZreGlPRFJQZVdJMGFWaEhMeXMxV0VZM2FucEtUR0ZITUU1Uk0wWlFiVVphZVU5bVpYQlNhalpEVnpOWWRHZEplQzlWVGxsSlRGUk5SMnRWVms1U1VVMHJORmRTSzNaVlRVNWxSSEpCV21WTlBRLnhOTXo4RllhWXBZcmJFclBEVndpNnlseU93a3hEQnN0RjZEODNYSmFfUngyc1p0TU9LSXBFSDM4NGV5cFpjMGZyTXlnUmNYMmZvZEsxaHpxM3g5TEhn"
     username = MOODLE_USERNAME
     password = MOODLE_PASSWORD
+    try:
+        pg = session.get('https://login.iiit.ac.in')
+    except requests.ConnectionError:
+        print('I think you are not connected to internet.')
+        raise SystemExit(14)
+    sp = bs4.BeautifulSoup(pg.text, 'lxml')
+    execution_value = sp.find('input', {'name': 'execution'}).get('value')
     return url, execution_value, username, password
 
 
@@ -253,6 +271,11 @@ def get_courses():
     return 0
 
 
+def login_test(pg):
+    if 'Log In Successful' in pg.text:
+        return True
+
+
 def login():
     """
     Login the user to iiit sites.
@@ -270,8 +293,9 @@ def login():
                           data={'username': username, 'password': password,
                                 'execution': execution_value, '_eventId': 'submit'},
                           timeout=10)
-    except requests.ConnectionError:
+    except requests.ConnectionError as e:
         print("I think you are not connected to internet.")
+        print(e)
         raise SystemExit(1)
     except requests.ReadTimeout:
         logging.warning(
@@ -283,7 +307,8 @@ def login():
     sp = bs4.BeautifulSoup(pg.text, 'lxml')
     setattr(soup, 'login', sp)
 
-    if sp.find('p').text == success_text:
+    # if sp.find('p').text == success_text:
+    if login_test(pg):
         if WINDOWS:
             os.system("cls")
         print(color_text('Login Successful', 'Green'))
@@ -672,6 +697,9 @@ def run_engine():
     global session, files, names, database
     setattr(page, 'login', login())
     setattr(page, 'dashboard', connect_to_moodle())
+    if SINGLE_PAGE:
+        print("Not yet implemented.")
+        return
     get_all_courses()
 
     setattr(soup, 'dashboard', bs4.BeautifulSoup(page.dashboard.text, 'lxml'))
@@ -716,6 +744,7 @@ def run_engine():
             # print("\rNo files or topics in " + color_text(selected_course, COURSE_COLOR) + ' course', '\n')
 
     print('\r')
+
 
 def exit_handler():
     global stdin_fd, old_settings_term

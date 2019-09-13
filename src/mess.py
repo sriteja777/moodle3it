@@ -1,9 +1,9 @@
 import bs4
 import requests
 
-from src import all
+from src import moodle3it
 
-login_page = all.login()
+login_page = moodle3it.login()
 index = 'https://mess.iiit.ac.in/mess/web/index.php'
 home = 'https://mess.iiit.ac.in/mess/web/student_home.php'
 pg = requests.get(index, cookies=login_page.cookies)
